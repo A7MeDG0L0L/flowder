@@ -1,4 +1,6 @@
+
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:dio/dio.dart' hide ProgressCallback;
 import 'package:flowder/src/flowder.dart';
@@ -20,7 +22,7 @@ class DownloaderUtils {
   bool deleteOnCancel;
 
   /// Function to be called when the download has finished.
-  final VoidCallback onDone;
+  final Function() onDone;
 
   /// Function with the current values of the download
   /// ```dart
