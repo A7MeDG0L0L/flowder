@@ -52,7 +52,7 @@ class Flowder {
         options: Options(responseType: ResponseType.stream, headers: {
           HttpHeaders.rangeHeader: 'bytes=$lastProgress-',
           "Authorization":
-              "Bearer: $token"
+              "Bearer $token"
         }),
       );
       final _total = int.tryParse(
