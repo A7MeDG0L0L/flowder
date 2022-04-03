@@ -21,14 +21,16 @@ typedef VoidCallback = void Function();
 /// - Flowder.download: Returns an instance of [DownloaderCore]
 /// - Flowder.initDownload -> this used at your own risk.
 class Flowder {
+
+  static CancelToken? cancelToken;
   /// Start a new Download progress.
   /// Returns a [DownloaderCore]
   static Future<DownloaderCore> download(String url,
       DownloaderUtils options) async {
     try {
       // ignore: cancel_subscriptions
-      final subscription = await initDownload(url, options);
-      return DownloaderCore(subscription, options, url);
+      await initDownload(url, options);
+      return DownloaderCore(cancelToken, options, url);
     } catch (e) {
       rethrow;
     }
@@ -37,12 +39,12 @@ class Flowder {
 
   /// Init a new Download, however this returns a [StreamSubscription]
   /// use at your own risk.
-  static Future<CancelToken> initDownload(String url, DownloaderUtils options) async {
+  static Future<void> initDownload(String url, DownloaderUtils options) async {
     var lastProgress = await options.progress.getProgress(url);
     final client = options.client ?? Dio(BaseOptions(sendTimeout: 60),);
     final token = options.accessToken;
 
-    CancelToken cancelToken = CancelToken();
+    cancelToken = CancelToken();
     try {
       final response = await client.get(
         url,
@@ -53,6 +55,7 @@ class Flowder {
               "Bearer $token"
         }),
       );
+
       final _total = int.tryParse(
               response.headers.value(HttpHeaders.contentLengthHeader)!) ??
           0;
@@ -72,6 +75,5 @@ class Flowder {
     rethrow;
     }
 
-    return cancelToken;
   }
 }
