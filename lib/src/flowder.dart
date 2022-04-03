@@ -58,21 +58,34 @@ class Flowder {
       final _total = int.tryParse(
               response.headers.value(HttpHeaders.contentLengthHeader)!) ??
           0;
+
+      double received = 0;
+
+      await for (final value in response.data.stream) {
+        received += value.length;
+        options.progressCallback.call(received.toInt(), _total);
+
+        print('received value is $received');
+      }
+
+      options.onDone.call();
       final sink = await file.open(mode: FileMode.writeOnlyAppend);
-      subscription = response.data.stream.listen(
+
+
+      subscription = await response.data.stream.listen(
         (Uint8List data) async {
-          subscription!.pause();
-          await sink.writeFrom(data);
-          final currentProgress = lastProgress + data.length;
-          await options.progress.setProgress(url, currentProgress.toInt());
-          options.progressCallback.call(currentProgress, _total);
-          lastProgress = currentProgress;
-          subscription.resume();
+          // subscription!.pause();
+          // await sink.writeFrom(data);
+          // final currentProgress = lastProgress + data.length;
+          // await options.progress.setProgress(url, currentProgress.toInt());
+          // options.progressCallback.call(currentProgress, _total);
+          // lastProgress = currentProgress;
+          // subscription.resume();
         },
         onDone: () async {
-          options.onDone.call();
-          await sink.close();
-          if (options.client != null) client.close();
+          // options.onDone.call();
+          // await sink.close();
+          // if (options.client != null) client.close();
         },
         onError: (error) async => subscription!.pause(),
       );
