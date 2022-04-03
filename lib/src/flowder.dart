@@ -59,7 +59,7 @@ class Flowder {
               response.headers.value(HttpHeaders.contentLengthHeader)!) ??
           0;
       final sink = await file.open(mode: FileMode.writeOnlyAppend);
-      subscription = response.data.stream.listen(
+      subscription = await response.data.stream.listen(
         (Uint8List data) async {
           subscription!.pause();
           await sink.writeFrom(data);
