@@ -37,7 +37,7 @@ class DownloaderCore {
   /// Cancel any current download, even if the download is [pause]
   Future<void> cancel() async {
     _isActive();
-    _cancelToken?.cancel();
+    _cancelToken!.cancel();
     await _options.progress.resetProgress(_url);
     if (_options.deleteOnCancel) {
       await _options.file.delete();
