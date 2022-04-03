@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flowder/src/flowder.dart';
 import 'package:flowder/src/utils/constants.dart';
 import 'package:flowder/src/utils/downloader_utils.dart';
@@ -8,7 +9,7 @@ import 'package:flowder/src/utils/downloader_utils.dart';
 /// also required to actually `start`,`stop`,`pause`,`cancel` a download.
 class DownloaderCore {
   /// StreamSubscription used to link with the download streaming.
-  late StreamSubscription _inner;
+  late CancelToken _inner;
 
   /// Inner utils
   late final DownloaderUtils _options;
@@ -19,15 +20,15 @@ class DownloaderCore {
   /// Check if the download was cancelled.
   bool isCancelled = false;
 
-  DownloaderCore(StreamSubscription inner, DownloaderUtils options, String url)
-      : _inner = inner,
+  DownloaderCore(CancelToken cancelToken, DownloaderUtils options, String url)
+      : _inner = cancelToken,
         _options = options,
         _url = url;
 
   /// Pause any current download.
   Future<void> pause() async {
     _isActive();
-    await _inner.cancel();
+    _inner.cancel();
     isDownloading = false;
   }
 
@@ -41,7 +42,7 @@ class DownloaderCore {
   /// Cancel any current download, even if the download is [pause]
   Future<void> cancel() async {
     _isActive();
-    await _inner.cancel();
+    _inner.cancel();
     await _options.progress.resetProgress(_url);
     if (_options.deleteOnCancel) {
       await _options.file.delete();

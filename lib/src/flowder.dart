@@ -23,8 +23,8 @@ typedef VoidCallback = void Function();
 class Flowder {
   /// Start a new Download progress.
   /// Returns a [DownloaderCore]
-  static Future<DownloaderCore> download(
-      String url, DownloaderUtils options) async {
+  static Future<DownloaderCore> download(String url,
+      DownloaderUtils options) async {
     try {
       // ignore: cancel_subscriptions
       final subscription = await initDownload(url, options);
@@ -34,21 +34,19 @@ class Flowder {
     }
   }
 
+
   /// Init a new Download, however this returns a [StreamSubscription]
   /// use at your own risk.
-  static Future<StreamSubscription> initDownload(
-      String url, DownloaderUtils options) async {
+  static Future<CancelToken> initDownload(String url, DownloaderUtils options) async {
     var lastProgress = await options.progress.getProgress(url);
-    final client = options.client ?? Dio(BaseOptions(sendTimeout: 60));
+    final client = options.client ?? Dio(BaseOptions(sendTimeout: 60),);
     final token = options.accessToken;
 
-    // ignore: cancel_subscriptions
-    StreamSubscription? subscription;
+    CancelToken cancelToken = CancelToken();
     try {
-      isDownloading = true;
-      final file = await options.file.create(recursive: true);
       final response = await client.get(
         url,
+        cancelToken: cancelToken,
         options: Options(responseType: ResponseType.stream, headers: {
           HttpHeaders.rangeHeader: 'bytes=$lastProgress-',
           "Authorization":
@@ -68,30 +66,12 @@ class Flowder {
         print('received value is $received');
       }
 
-      options.onDone.call();
-      final sink = await file.open(mode: FileMode.writeOnlyAppend);
+    options.onDone.call();
 
-
-      subscription = await response.data.stream.listen(
-        (Uint8List data) async {
-          // subscription!.pause();
-          // await sink.writeFrom(data);
-          // final currentProgress = lastProgress + data.length;
-          // await options.progress.setProgress(url, currentProgress.toInt());
-          // options.progressCallback.call(currentProgress, _total);
-          // lastProgress = currentProgress;
-          // subscription.resume();
-        },
-        onDone: () async {
-          // options.onDone.call();
-          // await sink.close();
-          // if (options.client != null) client.close();
-        },
-        onError: (error) async => subscription!.pause(),
-      );
-      return subscription!;
     } catch (e) {
-      rethrow;
+    rethrow;
     }
+
+    return cancelToken;
   }
 }
