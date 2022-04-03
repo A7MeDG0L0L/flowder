@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:dio/dio.dart';
 import 'package:flowder/src/core/downloader_core.dart';
-import 'package:flowder/src/utils/constants.dart';
 import 'package:flowder/src/utils/downloader_utils.dart';
 
 export 'core/downloader_core.dart';
@@ -58,6 +55,10 @@ class Flowder {
           0;
 
       double received = 0;
+
+      final streamSubscription = response.data.stream;
+      print('type: ${streamSubscription.runtimeType}');
+
 
       await for (final value in response.data.stream) {
         received += value.length;
