@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flowder/src/core/downloader_core.dart';
+import 'package:flowder/src/utils/constants.dart';
 import 'package:flowder/src/utils/downloader_utils.dart';
 
 export 'core/downloader_core.dart';
@@ -20,8 +23,8 @@ typedef VoidCallback = void Function();
 class Flowder {
   /// Start a new Download progress.
   /// Returns a [DownloaderCore]
-  static Future<DownloaderCore> download(String url,
-      DownloaderUtils options) async {
+  static Future<DownloaderCore> download(
+      String url, DownloaderUtils options) async {
     try {
       // ignore: cancel_subscriptions
       final subscription = await initDownload(url, options);
@@ -31,19 +34,21 @@ class Flowder {
     }
   }
 
-
   /// Init a new Download, however this returns a [StreamSubscription]
   /// use at your own risk.
-  static Future<CancelToken> initDownload(String url, DownloaderUtils options) async {
+  static Future<StreamSubscription> initDownload(
+      String url, DownloaderUtils options) async {
     var lastProgress = await options.progress.getProgress(url);
-    final client = options.client ?? Dio(BaseOptions(sendTimeout: 60),);
+    final client = options.client ?? Dio(BaseOptions(sendTimeout: 60));
     final token = options.accessToken;
 
-    CancelToken cancelToken = CancelToken();
+    // ignore: cancel_subscriptions
+    StreamSubscription? subscription;
     try {
+      isDownloading = true;
+      final file = await options.file.create(recursive: true);
       final response = await client.get(
         url,
-        cancelToken: cancelToken,
         options: Options(responseType: ResponseType.stream, headers: {
           HttpHeaders.rangeHeader: 'bytes=$lastProgress-',
           "Authorization":
@@ -53,26 +58,27 @@ class Flowder {
       final _total = int.tryParse(
           response.headers.value(HttpHeaders.contentLengthHeader)!) ??
           0;
-
-      double received = 0;
-
-      final streamSubscription = response.data.stream;
-      print('type: ${streamSubscription.runtimeType}');
-
-
-      await for (final value in response.data.stream) {
-        received += value.length;
-        options.progressCallback.call(received.toInt(), _total);
-
-        print('received value is $received');
-      }
-
-      options.onDone.call();
-
+      final sink = await file.open(mode: FileMode.writeOnlyAppend);
+      subscription = response.data.stream.listen(
+            (Uint8List data) async {
+          subscription!.pause();
+          await sink.writeFrom(data);
+          final currentProgress = lastProgress + data.length;
+          await options.progress.setProgress(url, currentProgress.toInt());
+          options.progressCallback.call(currentProgress, _total);
+          lastProgress = currentProgress;
+          subscription.resume();
+        },
+        onDone: () async {
+          options.onDone.call();
+          await sink.close();
+          if (options.client != null) client.close();
+        },
+        onError: (error) async => subscription!.pause(),
+      );
+      return subscription!;
     } catch (e) {
       rethrow;
     }
-
-    return cancelToken;
   }
 }
