@@ -2,8 +2,8 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:dio/dio.dart' hide ProgressCallback;
-import 'package:flowder/src/flowder.dart';
-import 'package:flowder/src/progress/interfaces/progress_interface.dart';
+import 'package:flowder_ex/src/flowder_ex.dart';
+import 'package:flowder_ex/src/progress/interfaces/progress_interface.dart';
 
 /// Required for the initialization of [Flowder]
 class DownloaderUtils {
