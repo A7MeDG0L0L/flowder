@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:flowder_ex/src/flowder_ex.dart';
+
+import '../../flowder_ex.dart';
 
 /// Class used to set/get any component from [DownloaderUtils]
 /// also required to actually `start`,`stop`,`pause`,`cancel` a download.

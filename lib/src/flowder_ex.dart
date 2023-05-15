@@ -3,9 +3,15 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:flowder_ex/src/core/downloader_core.dart';
-import 'package:flowder_ex/src/utils/constants.dart';
-import 'package:flowder_ex/src/utils/downloader_utils.dart';
+
+import 'core/downloader_core.dart';
+import 'utils/constants.dart';
+import 'utils/downloader_utils.dart';
+
+// import 'package:dio/dio.dart';
+// import 'package:flowder_ex/src/core/downloader_core.dart';
+// import 'package:flowder_ex/src/utils/constants.dart';
+// import 'package:flowder_ex/src/utils/downloader_utils.dart';
 
 export 'core/downloader_core.dart';
 export 'progress/progress.dart';
@@ -39,7 +45,8 @@ class Flowder {
   static Future<StreamSubscription> initDownload(
       String url, DownloaderUtils options) async {
     var lastProgress = await options.progress.getProgress(url);
-    final client = options.client ?? Dio(BaseOptions(sendTimeout: 60));
+    final client = options.client ?? Dio(BaseOptions(sendTimeout: Duration
+      (seconds: 60)));
     final token = options.accessToken;
 
     // ignore: cancel_subscriptions

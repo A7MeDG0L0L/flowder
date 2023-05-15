@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flowder/flowder_ex.dart';
+import 'package:flowder_ex/flowder_ex.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() {
