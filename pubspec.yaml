@@ -1,6 +1,6 @@
 name: flowder_ex
 description: Persistent file downloader manager, start, pause, resume, cancel your download.
-version: 0.2.1
+version: 0.2.2
 homepage: https://github.com/A7MeDG0L0L/flowder
 
 environment:
